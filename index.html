@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juego de la Vida</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.10/pixi.min.js"></script>
+</head>
+<body>
+  <h1 style="text-align: center;">Juego de la Vida</h1> 
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    // Configuración del lienzo
+    const canvas = document.getElementById('gameCanvas');
+    canvas.width = 100;
+    canvas.height = 100; 
+
+    const app = new PIXI.Application({
+      view: canvas,
+      backgroundColor: 0x000000,
+    });
+
+    // Tamaño y configuración de la cuadrícula
+    const numRows = 50;
+    const numCols = 50;
+    const cellSize = 8; 
+    const spacing = 1; 
+    let board = [];
+
+    // Función para crear la cuadrícula inicialmente
+    function createBoard() {
+      const graphics = new PIXI.Graphics();
+      for (let row = 0; row < numRows; row++) {
+        for (let col = 0; col < numCols; col++) {
+          const color = 0xCCCCCC; 
+          graphics.lineStyle(1, color, 1);
+          graphics.drawRect(col * (cellSize + spacing), row * (cellSize + spacing), cellSize, cellSize);
+        }
+      }
+      app.stage.addChild(graphics);
+    }
+
+    // Función para dibujar el estado actual del tablero
+    function drawBoard() {
+      const graphics = new PIXI.Graphics();
+      for (let row = 0; row < numRows; row++) {
+        for (let col = 0; col < numCols; col++) {
+          const color = board[row][col] === 1 ? 0xffffff : 0x000000; // Blanco para celdas vivas, negro para celdas muertas
+          graphics.beginFill(color);
+          graphics.drawRect(col * (cellSize + spacing), row * (cellSize + spacing), cellSize, cellSize);
+          graphics.endFill();
+        }
+      }
+      app.stage.addChild(graphics);
+    }
+
+    // Función para calcular el siguiente estado del tablero
+    function nextGeneration() {
+      const newBoard = [];
+      for (let row = 0; row < numRows; row++) {
+        newBoard[row] = [];
+        for (let col = 0; col < numCols; col++) {
+          const neighbors = countNeighbors(row, col);
+          if (board[row][col] === 1) {
+            newBoard[row][col] = (neighbors === 2 || neighbors === 3) ? 1 : 0;
+          } else {
+            newBoard[row][col] = (neighbors === 3) ? 1 : 0;
+          }
+        }
+      }
+      board = newBoard;
+    }
+
+    // Función para contar vecinos vivos
+    function countNeighbors(row, col) {
+      let count = 0;
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          const nRow = row + i;
+          const nCol = col + j;
+          if (nRow >= 0 && nRow < numRows && nCol >= 0 && nCol < numCols && !(i === 0 && j === 0)) {
+            count += board[nRow][nCol];
+          }
+        }
+      }
+      return count;
+    }
+
+    // Inicializar el tablero con estados aleatorios
+    function initBoard() {
+      for (let row = 0; row < numRows; row++) {
+        board[row] = [];
+        for (let col = 0; col < numCols; col++) {
+          board[row][col] = Math.random() > 0.5 ? 1 : 0; // Estado inicial aleatorio
+        }
+      }
+    }
+
+    initBoard();
+    createBoard();
+
+ 
+    setInterval(() => {
+      nextGeneration();
+      app.stage.removeChildren(); 
+      createBoard(); 
+      drawBoard(); 
+    }, 1000); 
+  </script>
+</body>
+</html>
